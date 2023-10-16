@@ -1,0 +1,63 @@
+---
+version: '3.7'
+services:
+  server:
+    container_name: bamboo-server
+    image: atlassian/bamboo:9.2
+    ports:
+      - 54663:54663
+      - 8085:8085
+    volumes:
+      - ./drivers/postgresql.jar:/opt/atlassian/bamboo/lib/postgresql.jar
+      # - bambooVolume:/var/atlassian/application-data/bamboo
+    init: true # Recommended by Atlassian to properly reap zombie processes
+
+    environment:
+      # This is a trial license, valid until 2023-11-16
+      ATL_LICENSE: ${ATL_LICENSE}
+
+      ATL_BAMBOO_ENABLE_UNATTENDED_SETUP: true
+      ATL_BAMBOO_SKIP_CONFIG: true
+      ATL_IMPORT_OPTION: clean
+
+      ATL_FORCE_CFG_UPDATE: true
+
+      # Bamboo configuration
+      SECURITY_TOKEN: "Unsecure token :)"
+      ATL_BASE_URL: http://localhost:8085
+      ATL_ADMIN_USERNAME: admin
+      ATL_ADMIN_PASSWORD: admin
+      ATL_ADMIN_FULLNAME: admin
+      ATL_ADMIN_EMAIL: admin@localhost.local
+
+
+      # Database configuration
+      #
+      # I've tried to use both postgres or h2, and in both of
+      # them I have to go to the GUI and click at things...
+      # It is very annoying.
+      #
+      ATL_JDBC_URL: jdbc:postgresql://postgres:5432/bamboo
+      ATL_JDBC_USER: postgres
+      ATL_JDBC_PASSWORD: password
+      ATL_JDBC_TYPE: postgresql
+
+      #ATL_JDBC_TYPE: H2
+      #ATL_JDBC_USER: sa
+      #ATL_JDBC_PASSWORD: ""
+    
+
+
+
+  postgres:
+    container_name: bamboo-postgres
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: bamboo
+
+
+# volumes:
+#   bambooVolume: null
