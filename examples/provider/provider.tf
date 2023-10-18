@@ -6,9 +6,10 @@ terraform {
   }
 }
 provider "bamboo" {
-  # example configuration here
+  url = "http://localhost:8085"
+  username = "admin"
+  password = "admin"
 }
 
-
-data "bamboo_unknown_data_source" "example" {
+data "bamboo_coffees" "example" {
 }

@@ -4,9 +4,13 @@ SHELL:=/bin/bash
 
 .PHONY: help
 help:
+	@echo build
 	@echo testacc
 	@echo dev
-	@echo db-setup
+
+.PHONY: build
+build:
+	go install
 
 # Run acceptance tests
 .PHONY: testacc
