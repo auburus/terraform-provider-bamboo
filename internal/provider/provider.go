@@ -6,7 +6,6 @@ package provider
 import (
 	"context"
 	"io"
-	"net/http"
 	"os"
 	"strings"
 
@@ -148,15 +147,11 @@ func (p *bambooProvider) Configure(ctx context.Context, req provider.ConfigureRe
 	if !strings.HasSuffix(url, "/") {
 		url = url + "/"
 	}
-	url = url + "rest/api/latest/"
+	url = url + "rest/api/latest"
 
-	// Example client configuration for data sources and resources
-	client := http.DefaultClient
-	httpRequest, err := http.NewRequest("GET", url, nil)
-	httpRequest.SetBasicAuth(username, password)
-	httpRequest.Header.Add("Accept", "application/json")
+	bambooClient := NewBambooClient(url, username, password)
+	httpResponse, err := bambooClient.Request("GET", "/info")
 
-	httpResponse, err := client.Do(httpRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create Bamboo API client",
@@ -168,6 +163,14 @@ func (p *bambooProvider) Configure(ctx context.Context, req provider.ConfigureRe
 
 	defer httpResponse.Body.Close()
 	body, err := io.ReadAll(httpResponse.Body)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to create Bamboo API client",
+			"An unexpected error ocurred when reading the http response. "+
+				"Error: "+err.Error(),
+		)
+		return
+	}
 
 	if httpResponse.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -177,8 +180,8 @@ func (p *bambooProvider) Configure(ctx context.Context, req provider.ConfigureRe
 		return
 	}
 
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	resp.DataSourceData = bambooClient
+	resp.ResourceData = bambooClient
 }
 
 func (p *bambooProvider) Resources(ctx context.Context) []func() resource.Resource {
@@ -190,6 +193,7 @@ func (p *bambooProvider) Resources(ctx context.Context) []func() resource.Resour
 func (p *bambooProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewCoffeesDataSource,
+		NewProjectDataSource,
 	}
 }
 
