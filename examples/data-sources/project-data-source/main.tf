@@ -14,3 +14,8 @@ provider "bamboo" {
 data "bamboo_project" "project1" {
   key = "P1"
 }
+
+
+output "project1" {
+  value = data.bamboo_project.project1
+}
