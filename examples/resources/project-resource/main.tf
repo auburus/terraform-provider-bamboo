@@ -5,16 +5,19 @@ terraform {
     }
   }
 }
+
 provider "bamboo" {
   url = "http://localhost:8085/"
   username = "admin"
   password = "admin"
 }
 
-data "bamboo_project" "project1" {
-  key = "P1"
+resource "bamboo_project" "new_project" {
+  key = "P4"
+  name = "Project4"
+  description = "Terraform generated project"
 }
 
-output "project1" {
-  value = data.bamboo_project.project1
+output "project" {
+  value = bamboo_project.new_project
 }

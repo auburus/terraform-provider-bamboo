@@ -3,9 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"io"
-
-	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -60,7 +57,7 @@ func (d *projectDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	httpResponse, err := d.bambooClient.Request("GET", "/project/"+projectConfig.Key.ValueString())
+	project, err := d.bambooClient.ReadProject(projectConfig.Key.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to read Bamboo Project",
@@ -70,43 +67,10 @@ func (d *projectDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	defer httpResponse.Body.Close()
-	body, err := io.ReadAll(httpResponse.Body)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Could not read httpResponse.Body",
-			err.Error(),
-		)
-
-		return
-	}
-
-	if httpResponse.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Error while querying bamboo",
-			"Bamboo returned status code "+httpResponse.Status+"when looking for project "+projectConfig.Key.ValueString()+". Response:\n"+string(body),
-		)
-		return
-	}
-
-	var data map[string]interface{}
-	err = json.Unmarshal([]byte(body), &data)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Could not parse response body as json",
-			err.Error(),
-		)
-
-		return
-	}
-	keyValue := data["key"]
-	nameValue := data["name"]
-	descriptionValue := data["description"]
-
 	projectState := projectDataSourceModel{
-		Key:         types.StringValue(keyValue.(string)),
-		Name:        types.StringValue(nameValue.(string)),
-		Description: types.StringValue(descriptionValue.(string)),
+		Key:         types.StringValue(project.Key),
+		Name:        types.StringValue(project.Name),
+		Description: types.StringValue(project.Description),
 	}
 
 	diags = resp.State.Set(ctx, &projectState)

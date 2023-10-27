@@ -150,7 +150,7 @@ func (p *bambooProvider) Configure(ctx context.Context, req provider.ConfigureRe
 	url = url + "rest/api/latest"
 
 	bambooClient := NewBambooClient(url, username, password)
-	httpResponse, err := bambooClient.Request("GET", "/info")
+	httpResponse, err := bambooClient.Request("GET", "/info", nil)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -186,13 +186,12 @@ func (p *bambooProvider) Configure(ctx context.Context, req provider.ConfigureRe
 
 func (p *bambooProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewExampleResource,
+		NewProjectResource,
 	}
 }
 
 func (p *bambooProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewCoffeesDataSource,
 		NewProjectDataSource,
 	}
 }
